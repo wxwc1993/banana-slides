@@ -82,144 +82,10 @@
 - **PDF导出**：便于分享和打印
 - 16:9比例，高质量输出
 
-## 🛠️ 技术架构
 
-### 前端技术栈
-- **框架**：React 18 + TypeScript
-- **构建工具**：Vite 5
-- **状态管理**：Zustand
-- **路由**：React Router v6
-- **UI组件**：Tailwind CSS
-- **拖拽功能**：@dnd-kit
-- **图标**：Lucide React
-- **HTTP客户端**：Axios
+## 📦 使用方法
 
-### 后端技术栈
-- **语言**：Python 3.10+
-- **框架**：Flask 3.0
-- **包管理**：uv
-- **数据库**：SQLite + Flask-SQLAlchemy
-- **AI能力**：Google Gemini API
-- **PPT处理**：python-pptx
-- **图片处理**：Pillow
-- **并发处理**：ThreadPoolExecutor
-- **跨域支持**：Flask-CORS
-
-
-## 📦 安装说明
-
-### 环境要求
-- Python 3.10 或更高版本
-- [uv](https://github.com/astral-sh/uv) - Python 包管理器
-- Node.js 16+ 和 npm
-- 有效的 Google Gemini API 密钥
-
-### 后端安装
-
-1. **安装 uv（如果尚未安装）**
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-2. **安装依赖**
-
-在项目根目录下运行：
-```bash
-uv sync
-```
-
-这将根据 `pyproject.toml` 自动安装所有依赖。
-
-3. **配置环境变量**
-
-复制环境变量模板：
-```bash
-cp .env.example .env
-```
-
-编辑 `.env` 文件，配置你的 API 密钥：
-```env
-GOOGLE_API_KEY=your-api-key-here
-GOOGLE_API_BASE=https://generativelanguage.googleapis.com
-PORT=5000
-```
-
-### 前端安装
-
-1. **进入前端目录**
-```bash
-cd frontend
-```
-
-2. **安装依赖**
-```bash
-npm install
-```
-
-3. **配置API地址**
-
-前端会自动连接到 `http://localhost:5000` 的后端服务。如需修改，请编辑 `src/api/client.ts`。
-
-## 🚀 快速开始
-
-### 启动后端服务
-
-```bash
-cd backend
-uv run python app.py
-```
-
-后端服务将在 `http://localhost:5000` 启动。
-
-访问 `http://localhost:5000/health` 验证服务是否正常运行。
-
-### 启动前端开发服务器
-
-```bash
-cd frontend
-npm run dev
-```
-
-前端开发服务器将在 `http://localhost:5173` 启动。
-
-打开浏览器访问即可使用应用。
-
-### 快速测试
-
-**方式一：使用Web界面**
-
-1. 打开浏览器访问 `http://localhost:5173`
-2. 选择 "一句话生成PPT"
-3. 输入你的想法，例如："生成一份关于人工智能发展历程的PPT"
-4. 上传风格模板（可选）
-5. 查看生成的大纲，可拖拽调整顺序
-6. 点击生成页面描述
-7. 点击生成PPT图片
-8. 导出为PPTX或PDF
-
-**方式二：使用API测试**
-
-```bash
-cd backend
-python test_api.py
-```
-
-或使用 curl 命令：
-
-```bash
-# 创建项目
-curl -X POST http://localhost:5000/api/projects \
-  -H "Content-Type: application/json" \
-  -d '{"creation_type":"idea","idea_prompt":"生成一份关于环保的PPT"}'
-
-# 记录返回的 project_id，然后继续后续步骤
-```
-
-完整的API测试流程请参考 [快速启动指南](快速启动指南.md)。
-
-## 🐳 Docker 部署
-
-### 使用 Docker Compose（推荐）
+### 使用 Docker Compose🐳（推荐）
 
 这是最简单的部署方式，可以一键启动前后端服务。
 
@@ -269,50 +135,6 @@ docker-compose logs -f frontend
 docker-compose down
 ```
 
-### 单独构建和运行
-
-#### 构建后端镜像
-
-```bash
-docker build -f backend/Dockerfile -t banana-slides-backend .
-```
-
-#### 运行后端容器
-
-```bash
-docker run -d \
-  --name banana-slides-backend \
-  -p 5000:5000 \
-  -e GOOGLE_API_KEY=your-api-key \
-  -e GOOGLE_API_BASE=https://generativelanguage.googleapis.com \
-  -v $(pwd)/backend/instance:/app/backend/instance \
-  -v $(pwd)/uploads:/app/uploads \
-  banana-slides-backend
-```
-
-#### 构建前端镜像
-
-```bash
-docker build -f frontend/Dockerfile -t banana-slides-frontend .
-```
-
-#### 运行前端容器
-
-```bash
-docker run -d \
-  --name banana-slides-frontend \
-  -p 3000:80 \
-  --link banana-slides-backend:backend \
-  banana-slides-frontend
-```
-
-### Docker 配置说明
-
-- **数据持久化**：数据库文件和上传的文件通过 Docker volumes 持久化到宿主机
-- **健康检查**：后端服务包含健康检查，确保服务正常运行
-- **网络隔离**：前后端通过 Docker 网络通信，前端通过 nginx 代理后端 API
-- **环境变量**：所有配置通过环境变量传递，便于不同环境部署
-
 <details>
   <summary>📒Windows用户</summary>
 
@@ -346,6 +168,107 @@ docker run -d \
 
 
 4. **备份策略**：定期备份 `backend/instance` 和 `uploads` 目录
+
+### 从源码部署
+
+#### 环境要求
+- Python 3.10 或更高版本
+- [uv](https://github.com/astral-sh/uv) - Python 包管理器
+- Node.js 16+ 和 npm
+- 有效的 Google Gemini API 密钥
+
+#### 后端安装
+
+1. **安装 uv（如果尚未安装）**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+2. **安装依赖**
+
+在项目根目录下运行：
+```bash
+uv sync
+```
+
+这将根据 `pyproject.toml` 自动安装所有依赖。
+
+3. **配置环境变量**
+
+复制环境变量模板：
+```bash
+cp .env.example .env
+```
+
+编辑 `.env` 文件，配置你的 API 密钥：
+```env
+GOOGLE_API_KEY=your-api-key-here
+GOOGLE_API_BASE=https://generativelanguage.googleapis.com
+PORT=5000
+```
+
+#### 前端安装
+
+1. **进入前端目录**
+```bash
+cd frontend
+```
+
+2. **安装依赖**
+```bash
+npm install
+```
+
+3. **配置API地址**
+
+前端会自动连接到 `http://localhost:5000` 的后端服务。如需修改，请编辑 `src/api/client.ts`。
+
+
+#### 启动后端服务
+
+```bash
+cd backend
+uv run python app.py
+```
+
+后端服务将在 `http://localhost:5000` 启动。
+
+访问 `http://localhost:5000/health` 验证服务是否正常运行。
+
+#### 启动前端开发服务器
+
+```bash
+cd frontend
+npm run dev
+```
+
+前端开发服务器将在 `http://localhost:5173` 启动。
+
+打开浏览器访问即可使用应用。
+
+
+## 🛠️ 技术架构
+
+### 前端技术栈
+- **框架**：React 18 + TypeScript
+- **构建工具**：Vite 5
+- **状态管理**：Zustand
+- **路由**：React Router v6
+- **UI组件**：Tailwind CSS
+- **拖拽功能**：@dnd-kit
+- **图标**：Lucide React
+- **HTTP客户端**：Axios
+
+### 后端技术栈
+- **语言**：Python 3.10+
+- **框架**：Flask 3.0
+- **包管理**：uv
+- **数据库**：SQLite + Flask-SQLAlchemy
+- **AI能力**：Google Gemini API
+- **PPT处理**：python-pptx
+- **图片处理**：Pillow
+- **并发处理**：ThreadPoolExecutor
+- **跨域支持**：Flask-CORS
 
 ## 📁 项目结构
 
@@ -401,13 +324,6 @@ banana-slides/
 │   └── {project_id}/
 │       ├── template/           # 模板图片
 │       └── pages/              # 生成的PPT页面图片
-│
-├── docs/                       # 文档
-│   ├── PRD.md                  # 产品需求文档
-│   ├── API设计文档.md          # API详细文档
-│   ├── 快速启动指南.md         # 快速上手指南
-│   ├── 后端测试报告.md         # 测试报告
-│   └── 项目交付总结.md         # 交付总结
 │
 ├── demo.py                     # 原始demo（已集成到后端）
 ├── gemini_genai.py             # Gemini API封装（已集成）
