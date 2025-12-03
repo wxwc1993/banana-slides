@@ -3,6 +3,8 @@ Simplified Flask Application Entry Point
 """
 import os
 import sys
+import logging
+import builtins
 from dotenv import load_dotenv
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
@@ -70,6 +72,7 @@ def create_app():
     app.config['MAX_IMAGE_WORKERS'] = int(os.getenv('MAX_IMAGE_WORKERS', '8'))
     app.config['DEFAULT_ASPECT_RATIO'] = "16:9"
     app.config['DEFAULT_RESOLUTION'] = "2K"
+    app.config['LOG_LEVEL'] = os.getenv('LOG_LEVEL', 'INFO').upper()
     
     # CORS configuration
     raw_cors = os.getenv('CORS_ORIGINS', 'http://localhost:5173')
@@ -79,6 +82,33 @@ def create_app():
         cors_origins = [o.strip() for o in raw_cors.split(',') if o.strip()]
     app.config['CORS_ORIGINS'] = cors_origins
     
+    # Initialize logging (log to stdout so Docker can capture it)
+    log_level = getattr(logging, app.config['LOG_LEVEL'], logging.INFO)
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+        handlers=[logging.StreamHandler(sys.stdout)],
+    )
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
+
+    # Redirect all built-in print calls to logging for real-time visibility in Docker
+    # This avoids having to manually change hundreds of print statements.
+    original_print = builtins.print
+    logger = logging.getLogger("app.print")
+
+    def _print_to_log(*args, **kwargs):
+        """
+        Replacement for built-in print, writing to logging instead.
+        We ignore file=... and always log at INFO level.
+        """
+        # Join like print would do
+        sep = kwargs.get("sep", " ")
+        end = kwargs.get("end", "\n")
+        msg = sep.join(str(a) for a in args) + ("" if end == "" else "")
+        logger.info(msg)
+
+    builtins.print = _print_to_log
+
     # Initialize extensions
     db.init_app(app)
     CORS(app, origins=cors_origins)
@@ -126,19 +156,17 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_ENV', 'development') == 'development'
     
-    print(f"""
-    ╔══════════════════════════════════════╗
-    ║   🍌 Banana Slides API Server 🍌   ║
-    ╚══════════════════════════════════════╝
-    
-    Server starting on: http://localhost:{port}
-    Environment: {os.getenv('FLASK_ENV', 'development')}
-    Debug mode: {debug}
-    
-    API Base URL: http://localhost:{port}/api
-    Database: {app.config['SQLALCHEMY_DATABASE_URI']}
-    Uploads: {app.config['UPLOAD_FOLDER']}
-    """)
+    logging.info(
+        "╔══════════════════════════════════════╗\n"
+        "║   🍌 Banana Slides API Server 🍌   ║\n"
+        "╚══════════════════════════════════════╝\n"
+        f"Server starting on: http://localhost:{port}\n"
+        f"Environment: {os.getenv('FLASK_ENV', 'development')}\n"
+        f"Debug mode: {debug}\n"
+        f"API Base URL: http://localhost:{port}/api\n"
+        f"Database: {app.config['SQLALCHEMY_DATABASE_URI']}\n"
+        f"Uploads: {app.config['UPLOAD_FOLDER']}"
+    )
     
     # Enable reloader for hot reload in development
     # Using absolute paths for database, so WSL path issues should not occur

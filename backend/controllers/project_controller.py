@@ -268,6 +268,9 @@ def generate_outline(project_id):
     
     except Exception as e:
         db.session.rollback()
+        error_trace = traceback.format_exc()  
+        print(f"[ERROR] generate_outline failed: {str(e)}")  
+        print(error_trace)  
         return error_response('AI_SERVICE_ERROR', str(e), 503)
 
 
