@@ -188,7 +188,7 @@ export const OutlineEditor: React.FC = () => {
           {currentProject.creation_type === 'idea' && (
             <>
               <span className="font-medium text-gray-700 flex-shrink-0">📊 PPT构想:</span>
-              <span className="text-gray-900 break-words">{currentProject.idea_prompt}</span>
+              <span className="text-gray-900 break-words whitespace-pre-wrap">{currentProject.idea_prompt}</span>
             </>
           )}
           {currentProject.creation_type === 'outline' && (
