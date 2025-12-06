@@ -269,12 +269,20 @@ def list_project_reference_files(project_id):
     """
     GET /api/reference-files/project/<project_id> - List all reference files for a project
     
+    Special values:
+    - 'all': List all reference files (global + all projects)
+    - 'global' or 'none': List only global files (not associated with any project)
+    - project_id: List files for specific project
+    
     Returns:
         List of reference files
     """
     try:
+        # Special case: 'all' means list all files
+        if project_id == 'all':
+            reference_files = ReferenceFile.query.all()
         # Special case: 'global' or 'none' means list global files (not associated with any project)
-        if project_id in ['global', 'none']:
+        elif project_id in ['global', 'none']:
             reference_files = ReferenceFile.query.filter_by(project_id=None).all()
         else:
             # Verify project exists

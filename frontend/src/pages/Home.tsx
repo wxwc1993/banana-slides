@@ -93,12 +93,14 @@ export const Home: React.FC = () => {
   };
 
   // 上传文件
+  // 在 Home 页面，文件始终上传为全局文件（不关联项目），因为此时还没有项目
   const handleFileUpload = async (file: File) => {
     if (isUploadingFile) return;
 
     setIsUploadingFile(true);
     try {
-      const response = await uploadReferenceFile(file, currentProjectId);
+      // 在 Home 页面，始终上传为全局文件
+      const response = await uploadReferenceFile(file, null);
       if (response.data?.file) {
         setReferenceFiles(prev => [...prev, response.data.file]);
         show({ message: '文件上传成功', type: 'success' });
@@ -444,8 +446,9 @@ export const Home: React.FC = () => {
         onClose={() => setIsMaterialModalOpen(false)}
       />
       {/* 参考文件选择器 */}
+      {/* 在 Home 页面，始终查询全局文件，因为此时还没有项目 */}
       <ReferenceFileSelector
-        projectId={currentProjectId}
+        projectId={null}
         isOpen={isFileSelectorOpen}
         onClose={() => setIsFileSelectorOpen(false)}
         onSelect={handleFilesSelected}

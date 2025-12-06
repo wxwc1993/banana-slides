@@ -44,6 +44,7 @@ export const ReferenceFileSelector: React.FC<ReferenceFileSelectorProps> = React
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [parsingIds, setParsingIds] = useState<Set<string>>(new Set());
+  const [filterProjectId, setFilterProjectId] = useState<string>('all'); // 始终默认显示所有附件
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialSelectedIdsRef = useRef(initialSelectedIds);
   const showRef = useRef(show);
@@ -57,10 +58,33 @@ export const ReferenceFileSelector: React.FC<ReferenceFileSelectorProps> = React
   const loadFiles = useCallback(async () => {
     setIsLoading(true);
     try {
-      const targetProjectId = projectId || 'global';
+      // 根据 filterProjectId 决定查询哪些文件
+      // 'all' - 所有文件（全局 + 项目）
+      // 'none' - 只查询未归类文件（全局文件，project_id=None）
+      // 项目ID - 只查询该项目的文件
+      const targetProjectId = filterProjectId === 'all' ? 'all' : filterProjectId === 'none' ? 'none' : filterProjectId;
       const response = await listProjectReferenceFiles(targetProjectId);
+      
       if (response.data?.files) {
-        setFiles(response.data.files);
+        // 合并新旧文件列表，避免丢失正在解析的文件
+        setFiles(prev => {
+          const fileMap = new Map<string, ReferenceFile>();
+          const serverFiles = response.data!.files; // 已经检查过 response.data?.files
+          
+          // 先添加服务器返回的文件（这些是权威数据）
+          serverFiles.forEach((f: ReferenceFile) => {
+            fileMap.set(f.id, f);
+          });
+          
+          // 然后添加正在解析的文件（可能服务器还没更新状态）
+          prev.forEach(f => {
+            if (parsingIds.has(f.id) && !fileMap.has(f.id)) {
+              fileMap.set(f.id, f);
+            }
+          });
+          
+          return Array.from(fileMap.values());
+        });
       }
     } catch (error: any) {
       console.error('加载参考文件列表失败:', error);
@@ -71,7 +95,7 @@ export const ReferenceFileSelector: React.FC<ReferenceFileSelectorProps> = React
     } finally {
       setIsLoading(false);
     }
-  }, [projectId]);
+  }, [filterProjectId, parsingIds]);
 
   useEffect(() => {
     if (isOpen) {
@@ -79,7 +103,7 @@ export const ReferenceFileSelector: React.FC<ReferenceFileSelectorProps> = React
       // 恢复初始选择
       setSelectedFiles(new Set(initialSelectedIdsRef.current));
     }
-  }, [isOpen, loadFiles]);
+  }, [isOpen, filterProjectId, loadFiles]);
 
   // 轮询解析状态
   useEffect(() => {
@@ -198,7 +222,7 @@ export const ReferenceFileSelector: React.FC<ReferenceFileSelectorProps> = React
       );
       
       if (validFiles.length === 0) {
-        show({ message: '请选择有效的文件', type: 'warning' });
+        show({ message: '请选择有效的文件', type: 'info' });
         return;
       }
       
@@ -217,9 +241,16 @@ export const ReferenceFileSelector: React.FC<ReferenceFileSelectorProps> = React
 
     setIsUploading(true);
     try {
+      // 根据当前筛选条件决定上传文件的归属
+      // 如果筛选为 'all' 或 'none'，上传为全局文件（不关联项目）
+      // 如果筛选为项目ID，上传到该项目
+      const targetProjectId = (filterProjectId === 'all' || filterProjectId === 'none')
+        ? null
+        : filterProjectId;
+      
       // 上传所有选中的文件
       const uploadPromises = Array.from(files).map(file =>
-        uploadReferenceFile(file, projectId)
+        uploadReferenceFile(file, targetProjectId)
       );
 
       const results = await Promise.all(uploadPromises);
@@ -242,7 +273,17 @@ export const ReferenceFileSelector: React.FC<ReferenceFileSelectorProps> = React
           });
         }
         
-        loadFiles(); // 重新加载文件列表
+        // 合并新上传的文件到现有列表，而不是完全替换
+        setFiles(prev => {
+          const fileMap = new Map(prev.map(f => [f.id, f]));
+          uploadedFiles.forEach(uf => fileMap.set(uf.id, uf));
+          return Array.from(fileMap.values());
+        });
+        
+        // 延迟重新加载文件列表，确保服务器端数据已更新
+        setTimeout(() => {
+          loadFiles();
+        }, 500);
       }
     } catch (error: any) {
       console.error('上传文件失败:', error);
@@ -350,18 +391,33 @@ export const ReferenceFileSelector: React.FC<ReferenceFileSelectorProps> = React
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="选择参考文件" size="lg">
       <div className="space-y-4">
-        {/* 操作栏 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              icon={<Upload size={16} />}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
+        {/* 工具栏 */}
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>{files.length > 0 ? `共 ${files.length} 个文件` : '暂无文件'}</span>
+            {selectedFiles.size > 0 && (
+              <span className="ml-2 text-banana-600">
+                已选择 {selectedFiles.size} 个
+              </span>
+            )}
+            {isLoading && files.length > 0 && (
+              <RefreshCw size={14} className="animate-spin text-gray-400" />
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* 项目筛选下拉菜单 */}
+            <select
+              value={filterProjectId}
+              onChange={(e) => setFilterProjectId(e.target.value)}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-banana-500"
             >
-              {isUploading ? '上传中...' : '上传文件'}
-            </Button>
+              <option value="all">所有附件</option>
+              <option value="none">未归类附件</option>
+              {projectId && projectId !== 'global' && projectId !== 'none' && (
+                <option value={projectId}>当前项目附件</option>
+              )}
+            </select>
+            
             <Button
               variant="ghost"
               size="sm"
@@ -371,17 +427,23 @@ export const ReferenceFileSelector: React.FC<ReferenceFileSelectorProps> = React
             >
               刷新
             </Button>
-          </div>
-          {selectedFiles.size > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">
-                已选择 {selectedFiles.size} 个文件
-              </span>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Upload size={16} />}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              {isUploading ? '上传中...' : '上传文件'}
+            </Button>
+            
+            {selectedFiles.size > 0 && (
               <Button variant="ghost" size="sm" onClick={handleClear}>
-                清空
+                清空选择
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* 隐藏的文件输入 */}
@@ -412,9 +474,7 @@ export const ReferenceFileSelector: React.FC<ReferenceFileSelectorProps> = React
               {files.map((file) => {
                 const isSelected = selectedFiles.has(file.id);
                 const isDeleting = deletingIds.has(file.id);
-                const isParsing = parsingIds.has(file.id) || file.parse_status === 'parsing';
                 const isPending = file.parse_status === 'pending';
-                const canSelect = true; // 允许选择所有状态的文件
 
                 return (
                   <div
