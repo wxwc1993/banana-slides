@@ -81,7 +81,7 @@ def export_pptx(project_id):
         ExportService.create_pptx_from_images(image_paths, output_file=output_path)
 
         # Build download URLs
-        download_path = f"/files/{project_id}/exports/{filename}"
+        download_path = f"/ai-ppt/files/{project_id}/exports/{filename}"
         base_url = request.url_root.rstrip("/")
         download_url_absolute = f"{base_url}{download_path}"
 
@@ -155,7 +155,7 @@ def export_pdf(project_id):
         ExportService.create_pdf_from_images(image_paths, output_file=output_path)
 
         # Build download URLs
-        download_path = f"/files/{project_id}/exports/{filename}"
+        download_path = f"/ai-ppt/files/{project_id}/exports/{filename}"
         base_url = request.url_root.rstrip("/")
         download_url_absolute = f"{base_url}{download_path}"
 

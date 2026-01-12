@@ -30,7 +30,7 @@ function App() {
   }, [error, setError, show]);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/ai-ppt">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/history" element={<History />} />

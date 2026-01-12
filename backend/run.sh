@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Banana Slides Backend Startup Script
+# AI PPT Backend Startup Script
 
 echo "╔══════════════════════════════════════╗"
-echo "║   🍌 Banana Slides API Server 🍌   ║"
+echo "║   🍌 AI PPT API Server 🍌   ║"
 echo "╚══════════════════════════════════════╝"
 echo ""
 

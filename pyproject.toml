@@ -1,7 +1,7 @@
 [project]
 name = "banana-slides"
 version = "0.3.0"
-description = "Banana Slides – AI native PPT generator"
+description = "AI PPT – AI native PPT generator"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

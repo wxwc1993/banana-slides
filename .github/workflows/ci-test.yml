@@ -231,7 +231,7 @@ jobs:
           # Additional wait for JS/React to load
           sleep 5
           # Verify frontend content
-          if curl -s http://localhost:3000 | grep -q "蕉幻"; then
+          if curl -s http://localhost:3000 | grep -q "AIDI"; then
             echo "Frontend started successfully and content loaded"
           else
             echo "Warning: Frontend responding but content verification failed"

@@ -101,7 +101,7 @@ class OpenAIImageProvider(ImageProvider):
                     {"role": "system", "content": f"aspect_ratio={aspect_ratio}"},
                     {"role": "user", "content": content},
                 ],
-                modalities=["text", "image"]
+                extra_body={"modalities": ["image", "text"]}  # OpenRouter compatible format
             )
             
             logger.debug("OpenAI API call completed")
@@ -112,7 +112,22 @@ class OpenAIImageProvider(ImageProvider):
             # Debug: log available attributes
             logger.debug(f"Response message attributes: {dir(message)}")
             
-            # Try multi_mod_content first (custom format from some proxies)
+            # Priority 1: Try OpenRouter format (message.images)
+            if hasattr(message, 'images') and message.images:
+                logger.debug(f"Found images array (OpenRouter format): {len(message.images)} images")
+                for image_item in message.images:
+                    if isinstance(image_item, dict) and 'image_url' in image_item:
+                        image_url = image_item['image_url'].get('url', '')
+                        logger.debug(f"Processing OpenRouter image URL: {image_url[:100] if len(image_url) > 100 else image_url}")
+                        if image_url.startswith('data:image'):
+                            # Extract base64 data from data URL
+                            base64_data = image_url.split(',', 1)[1]
+                            image_data = base64.b64decode(base64_data)
+                            image = Image.open(BytesIO(image_data))
+                            logger.debug(f"Successfully extracted image from OpenRouter format: {image.size}, {image.mode}")
+                            return image
+            
+            # Priority 2: Try multi_mod_content (custom format from some proxies)
             if hasattr(message, 'multi_mod_content') and message.multi_mod_content:
                 parts = message.multi_mod_content
                 for part in parts:

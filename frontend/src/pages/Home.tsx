@@ -6,6 +6,7 @@ import { TemplateSelector, getTemplateFile } from '@/components/shared/TemplateS
 import { listUserTemplates, type UserTemplate, uploadReferenceFile, type ReferenceFile, associateFileToProject, triggerFileParse, uploadMaterial, associateMaterialsToProject } from '@/api/endpoints';
 import { useProjectStore } from '@/store/useProjectStore';
 import { PRESET_STYLES } from '@/config/presetStyles';
+import { getAssetUrl } from '@/utils/assets';
 
 type CreationType = 'idea' | 'outline' | 'description';
 
@@ -465,13 +466,13 @@ export const Home: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="flex items-center">
               <img
-                src="/logo.png"
-                alt="蕉幻 Banana Slides Logo"
+                src={getAssetUrl('/logo.png')}
+                alt="AIDI AI PPT"
                 className="h-10 md:h-12 w-auto rounded-lg object-contain"
               />
             </div>
             <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-banana-600 via-orange-500 to-pink-500 bg-clip-text text-transparent">
-              蕉幻
+              AIDI
             </span>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
@@ -532,7 +533,7 @@ export const Home: React.FC = () => {
               backgroundSize: '200% auto',
               animation: 'gradient 3s ease infinite',
             }}>
-              蕉幻 · Banana Slides
+              AIDI · AI PPT
             </span>
           </h1>
           

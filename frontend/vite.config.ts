@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
   const backendUrl = `http://localhost:${backendPort}`
   
   return {
+    base:'/ai-ppt/',
     envDir,
     plugins: [react()],
     resolve: {

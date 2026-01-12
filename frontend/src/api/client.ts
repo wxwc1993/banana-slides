@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { getAssetUrl } from '@/utils/assets';
 
 // 开发环境：通过 Vite proxy 转发
 // 生产环境：通过 nginx proxy 转发
-const API_BASE_URL = '';
+const API_BASE_URL = '/ai-ppt';
 
 // 创建 axios 实例
 export const apiClient = axios.create({
@@ -61,8 +62,9 @@ export const getImageUrl = (path?: string, timestamp?: string | number): string 
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  // 使用相对路径（确保以 / 开头）
-  let url = path.startsWith('/') ? path : '/' + path;
+  
+  // 使用 getAssetUrl 处理相对路径（自动添加 base 前缀，支持子路径部署）
+  let url = getAssetUrl(path);
   
   // 添加时间戳参数避免浏览器缓存（仅在提供时间戳时添加）
   if (timestamp) {

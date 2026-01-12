@@ -117,7 +117,7 @@ def create_app():
     # Health check endpoint
     @app.route('/health')
     def health_check():
-        return {'status': 'ok', 'message': 'Banana Slides API is running'}
+        return {'status': 'ok', 'message': 'AI PPT API is running'}
     
     # Output language endpoint
     @app.route('/api/output-language', methods=['GET'])
@@ -138,7 +138,7 @@ def create_app():
     @app.route('/')
     def index():
         return {
-            'name': 'Banana Slides API',
+            'name': 'AI PPT API',
             'version': '1.0.0',
             'description': 'AI-powered PPT generation service',
             'endpoints': {
@@ -212,7 +212,7 @@ if __name__ == '__main__':
     logging.info(
         "\n"
         "╔══════════════════════════════════════╗\n"
-        "║   🍌 Banana Slides API Server 🍌   ║\n"
+        "║   🍌 AI PPT API Server 🍌   ║\n"
         "╚══════════════════════════════════════╝\n"
         f"Server starting on: http://localhost:{port}\n"
         f"Output Language: {Config.OUTPUT_LANGUAGE}\n"

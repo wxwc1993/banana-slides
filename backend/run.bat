@@ -1,8 +1,8 @@
 @echo off
-REM Banana Slides Backend Startup Script for Windows
+REM AI PPT Backend Startup Script for Windows
 
 echo ╔══════════════════════════════════════╗
-echo ║   🍌 Banana Slides API Server 🍌   ║
+echo ║   🍌 AI PPT API Server 🍌   ║
 echo ╚══════════════════════════════════════╝
 echo.
 
